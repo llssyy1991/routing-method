@@ -38,6 +38,8 @@ class LSrouter(Router):
         """TODO: handle current time"""
         pass
 
+    def 
+
 
     def debugString(self):
         """TODO: generate a string for debugging in network visualizer"""
