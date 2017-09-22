@@ -61,6 +61,10 @@ class Router:
 
     def send(self, port, packet):
         """Send a packet out given port"""
+        # if self.addr == "E" and packet.isRouting():
+        #     print str(packet.srcAddr) + "\t" \
+        #        + str(packet.dstAddr) + '\t' \
+        #         + str(packet.content)
         try:
             self.links[port].send(packet, self.addr)
         except KeyError:
