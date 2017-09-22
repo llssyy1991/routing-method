@@ -4,6 +4,10 @@
 # NetIds:
 #####################################################
 
+
+# mistake 1 : forget to update sequence number in LSP update.
+# mistake 2 : should put self as a node when calculate path.
+
 import sys
 from collections import defaultdict
 from router import Router
@@ -51,11 +55,7 @@ class LSrouter(Router):
                 transfer = True
 
             if transfer:
-                for portNext in self.routersAddr:
-                    if portNext != port:
-                        packet.srcAddr = self.addr
-                        packet.dstAddr = self.routersAddr[portNext]
-                        self.send(portNext, packet)
+                self.informOthers(packet, port)
 
         if packet.isTraceroute():
             try :
@@ -65,6 +65,14 @@ class LSrouter(Router):
                 print "addr : " + self.addr
                 print "routeNext : " + str(self.routersNext)
                 print "packetDst : " + packet.dstAddr
+
+    def informOthers(self, packet, port = None):
+        for portNext in self.routersAddr:
+            if portNext != port:
+                packet.srcAddr = self.addr
+                packet.dstAddr = self.routersAddr[portNext]
+                self.send(portNext, packet)
+
 
 
     def handleNewLink(self, port, endpoint, cost):
@@ -105,14 +113,16 @@ class LSrouter(Router):
 
     def setCostMax(self):
         for addr in self.routersCost:
-            self.routersCost[addr] = COST_MAXIMUM
+            self.routersCost[addr]  = COST_MAXIMUM
         self.routersCost[self.addr] = 0
         self.routersNext[self.addr] = self.addr
 
     def handleRemoveLink(self, port):
         """TODO: handle removed link"""
-
-        pass
+        addr = self.routersAddr[port]
+        self.routersLSP[self.addr].costs[addr] = COST_MAXIMUM
+        self.calPath()
+        self.informOthers(self.LSPUpdatePacket(self.addr))
 
 
     def handleTime(self, timeMillisecs):
